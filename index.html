@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>繳費管家｜誠毅傳承</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#1B2A4A; --navy2:#2E4A7A; --gold:#C9A84C; --gold-d:#A07830;
+  --cream:#FAF6EE; --gray:#E8E0D0; --text:#333; --ok:#2E7D52; --warn:#C0392B; --soon:#B8860B;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Noto Sans TC','Lato',sans-serif;background:var(--cream);color:var(--text);padding-bottom:88px}
+.num{font-family:'Lato','Noto Sans TC',sans-serif}
+
+/* 長輩友善大字模式 */
+body.big .item .nm{font-size:19px}
+body.big .item .meta{font-size:15px}
+body.big .item .amt{font-size:21px}
+body.big .item .btn-pay{font-size:15px;padding:9px 18px}
+body.big .tab{font-size:16px;padding:9px 18px}
+body.big .scard .lab{font-size:13px}
+body.big .scard .val{font-size:26px}
+body.big .banner .btxt{font-size:16px}
+body.big .bnav button{font-size:13px}
+body.big .bnav button .bi{font-size:24px}
+body.big .fld label{font-size:16px}
+body.big .fld input,body.big .fld select{font-size:18px;padding:14px}
+body.big .save,body.big .exp-btn{font-size:17px}
+/* 成功提示 toast */
+#toast{position:fixed;left:50%;bottom:104px;transform:translate(-50%,30px);z-index:250;background:var(--ok);color:#fff;border-radius:16px;padding:14px 20px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 28px rgba(46,125,82,.45);opacity:0;pointer-events:none;transition:all .3s cubic-bezier(.34,1.56,.64,1);max-width:88vw}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+#toast .t-icon{font-size:28px}
+#toast .t-title{font-size:16px;font-weight:900}
+#toast .t-sub{font-size:12px;opacity:.9;margin-top:1px}
+
+/* Header */
+header{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;padding:18px 20px 16px;position:sticky;top:0;z-index:50;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+header .brand{font-size:12px;letter-spacing:3px;color:var(--gold);font-weight:700}
+header h1{font-size:20px;font-weight:900;margin-top:2px}
+header .line{height:2px;background:var(--gold);margin-top:10px;border-radius:2px;opacity:.7}
+
+/* Page views */
+.page{display:none}
+.page.on{display:block}
+
+/* Summary cards */
+.summary{display:flex;gap:10px;padding:16px 16px 4px;overflow-x:auto}
+.scard{flex:1;min-width:108px;background:#fff;border-radius:14px;padding:14px 12px;box-shadow:0 2px 8px rgba(27,42,74,.06);border:1px solid var(--gray)}
+.scard .lab{font-size:11px;color:#888;font-weight:500}
+.scard .val{font-size:22px;font-weight:900;color:var(--navy);margin-top:4px}
+.scard.due .val{color:var(--warn)}
+.scard.soon .val{color:var(--soon)}
+.scard .val small{font-size:12px;font-weight:700}
+
+/* Filter tabs */
+.tabs{display:flex;gap:8px;padding:14px 16px 4px;overflow-x:auto}
+.tab{white-space:nowrap;padding:7px 16px;border-radius:20px;background:#fff;border:1px solid var(--gray);font-size:13px;font-weight:500;color:#666;cursor:pointer}
+.tab.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+
+/* List */
+.list{padding:8px 16px}
+.item{background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:11px;box-shadow:0 2px 8px rgba(27,42,74,.05);border-left:5px solid var(--gray);display:flex;align-items:center;gap:13px;position:relative;overflow:visible}
+.btn-del{position:absolute;top:-7px;right:-7px;width:26px;height:26px;border-radius:50%;border:2px solid #fff;background:var(--warn);color:#fff;font-size:13px;font-weight:700;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;z-index:10;box-shadow:0 2px 6px rgba(0,0,0,.2);padding:0}
+.btn-del:active{transform:scale(.85);background:#a32c1f}
+.item.s-due{border-left-color:var(--warn)}
+.item.s-soon{border-left-color:var(--soon)}
+.item.s-paid{border-left-color:var(--ok);opacity:.72}
+.item .ico{width:42px;height:42px;border-radius:11px;background:var(--cream);display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0}
+.item .mid{flex:1;min-width:0}
+.item .nm{font-size:15px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .meta{font-size:12px;color:#999;margin-top:3px}
+.item .meta b{color:var(--warn);font-weight:700}
+.item .meta b.soon{color:var(--soon)}
+.item .meta b.ok{color:var(--ok)}
+.item .sub{font-size:11px;color:#bbb;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .right{text-align:right;flex-shrink:0}
+.item .amt{font-size:17px;font-weight:900;color:var(--navy);font-family:'Lato',sans-serif}
+.item .amt small{font-size:11px;color:#aaa}
+.paid-stamp{font-size:11px;color:var(--ok);font-weight:700;margin-top:2px}
+.item .btn-pay{margin-top:6px;background:var(--gold);color:var(--navy);border:none;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit}
+.item .btn-pay:active{transform:scale(.95)}
+.empty{text-align:center;padding:50px 20px;color:#bbb;font-size:14px}
+
+/* Month overview */
+.mhead{display:flex;align-items:center;justify-content:center;gap:18px;padding:16px 16px 6px}
+.mhead button{background:#fff;border:1px solid var(--gray);width:38px;height:38px;border-radius:50%;font-size:18px;color:var(--navy);cursor:pointer;font-weight:700}
+.mhead .mtitle{font-size:18px;font-weight:900;color:var(--navy);min-width:120px;text-align:center}
+.mstat{display:flex;gap:10px;padding:6px 16px 4px;overflow-x:auto}
+.overtbl{padding:10px 16px}
+.overtbl table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(27,42,74,.05);font-size:13px}
+.overtbl th{background:var(--navy);color:#fff;font-weight:700;padding:10px 8px;text-align:left;font-size:12px}
+.overtbl td{padding:10px 8px;border-bottom:1px solid var(--gray)}
+.overtbl tr:last-child td{border-bottom:none}
+.overtbl .tdate{font-family:'Lato',sans-serif;color:#999;font-weight:700;white-space:nowrap}
+.overtbl .tamt{font-family:'Lato',sans-serif;font-weight:900;color:var(--navy);text-align:right;white-space:nowrap}
+.overtbl .tnm{font-weight:500;color:var(--navy)}
+.overtbl .pdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.overtbl tr.r-paid{background:#F2F8F4}
+.overtbl tr.r-due td{color:var(--warn)}
+.overtbl tfoot td{background:var(--cream);font-weight:900;color:var(--navy);font-family:'Lato',sans-serif;border-top:2px solid var(--gold)}
+.catbreak{padding:6px 16px 14px}
+.catbreak .crow{display:flex;align-items:center;gap:10px;background:#fff;border-radius:11px;padding:11px 14px;margin-bottom:8px;box-shadow:0 1px 5px rgba(27,42,74,.04)}
+.catbreak .ce{font-size:20px}
+.catbreak .cn{flex:1;font-size:14px;font-weight:700;color:var(--navy)}
+.catbreak .cc{font-size:12px;color:#aaa;margin-right:8px}
+.catbreak .ca{font-family:'Lato',sans-serif;font-weight:900;color:var(--navy);font-size:15px}
+
+/* FAB */
+.fab{position:fixed;right:20px;bottom:88px;width:58px;height:58px;border-radius:50%;background:var(--navy);color:var(--gold);border:none;font-size:30px;font-weight:300;box-shadow:0 6px 18px rgba(27,42,74,.35);cursor:pointer;z-index:60;display:flex;align-items:center;justify-content:center;line-height:1}
+
+/* Bottom nav */
+.bnav{position:fixed;left:0;right:0;bottom:0;height:64px;background:#fff;border-top:1px solid var(--gray);display:flex;z-index:55;box-shadow:0 -2px 10px rgba(27,42,74,.06)}
+.bnav button{flex:1;border:none;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;color:#aaa;font-family:inherit;cursor:pointer;font-weight:700}
+.bnav button .bi{font-size:20px}
+.bnav button.on{color:var(--navy)}
+.bnav button.on .bi{transform:translateY(-1px)}
+
+/* Modal */
+.mask{position:fixed;inset:0;background:rgba(27,42,74,.55);z-index:100;display:none;align-items:flex-end;justify-content:center}
+.mask.on{display:flex}
+.sheet{background:#fff;width:100%;max-width:560px;border-radius:22px 22px 0 0;padding:22px 20px 30px;max-height:92vh;overflow-y:auto;animation:up .25s ease}
+@keyframes up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet h2{font-size:18px;color:var(--navy);font-weight:900;margin-bottom:18px;text-align:center}
+.fld{margin-bottom:15px}
+.fld label{display:block;font-size:13px;font-weight:700;color:var(--navy);margin-bottom:6px}
+.fld input,.fld select{width:100%;padding:12px 14px;border:1.5px solid var(--gray);border-radius:11px;font-size:15px;font-family:inherit;background:var(--cream);color:var(--text);appearance:none}
+.fld input:focus,.fld select:focus{outline:none;border-color:var(--gold)}
+.cat-pick{display:flex;gap:8px;flex-wrap:wrap}
+.cat-pick .cp{flex:1;min-width:72px;text-align:center;padding:11px 4px;border:1.5px solid var(--gray);border-radius:11px;font-size:13px;cursor:pointer;background:var(--cream)}
+.cat-pick .cp.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.cat-pick .cp .e{font-size:20px;display:block;margin-bottom:2px}
+.row2{display:flex;gap:11px}
+.row2 .fld{flex:1}
+.policybox{background:var(--cream);border:1.5px dashed var(--gold);border-radius:13px;padding:14px 14px 2px;margin-bottom:15px}
+.policybox .pbtitle{font-size:13px;font-weight:900;color:var(--gold-d);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.policybox .fld input{background:#fff}
+.save{width:100%;padding:15px;background:var(--navy);color:#fff;border:none;border-radius:13px;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;margin-top:6px}
+.save:active{transform:scale(.98)}
+.del{width:100%;padding:13px;background:none;color:var(--warn);border:1.5px solid var(--warn);border-radius:13px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;margin-top:10px}
+.hint{font-size:11px;color:#aaa;margin-top:5px}
+.confirmmask{position:fixed;inset:0;background:rgba(27,42,74,.6);z-index:300;display:none;align-items:center;justify-content:center;padding:30px}
+.confirmmask.on{display:flex}
+.confirmbox{background:#fff;border-radius:18px;padding:24px 22px 20px;width:100%;max-width:340px;box-shadow:0 12px 40px rgba(0,0,0,.3);text-align:center;animation:pop .2s ease}
+@keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+.confirmbox .ctitle{font-size:17px;font-weight:900;color:var(--navy);margin-bottom:8px}
+.confirmbox .cmsg{font-size:14px;color:#666;line-height:1.6;margin-bottom:20px}
+.confirmbox .cmsg b{color:var(--navy);font-weight:700}
+.confirmbox .cbtns{display:flex;gap:11px}
+.confirmbox .cbtns button{flex:1;padding:13px;border-radius:11px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;border:none}
+.confirmbox .cbtn-cancel{background:var(--cream);color:#888;border:1.5px solid var(--gray)}
+.confirmbox .cbtn-ok{background:var(--warn);color:#fff}
+.confirmbox .cbtn-ok:active{transform:scale(.96)}
+footer{text-align:center;font-size:11px;color:#bbb;padding:20px;letter-spacing:1px}
+footer b{color:var(--gold)}
+
+.exp-btn{width:100%;padding:12px;background:#fff;color:var(--navy);border:1.5px solid var(--gold);border-radius:11px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer}
+.exp-btn:active{transform:scale(.98)}
+.exp-btn.act{background:var(--ok);color:#fff;border-color:var(--ok)}
+
+.sectlbl{font-size:14px;font-weight:900;color:var(--navy);padding:4px 0}
+/* 年度行事曆 */
+.yearcal{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:6px 16px}
+.ycell{background:#fff;border-radius:11px;padding:9px 8px;box-shadow:0 1px 5px rgba(27,42,74,.05);border:1px solid var(--gray);cursor:pointer;min-height:64px}
+.ycell.cur{border-color:var(--gold);border-width:2px}
+.ycell .ym{font-size:12px;font-weight:900;color:var(--navy)}
+.ycell .yc{font-size:10px;color:#aaa;margin-top:1px}
+.ycell .ya{font-family:'Lato',sans-serif;font-size:14px;font-weight:900;color:var(--gold-d);margin-top:4px}
+.ycell .ya small{font-size:9px;color:#bbb}
+.ycell.empty-m{opacity:.5}
+/* 年度長條圖 */
+.ychart{padding:8px 16px}
+.ychart .bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.ychart .bar-m{font-size:11px;color:#888;width:30px;flex-shrink:0;font-family:'Lato',sans-serif}
+.ychart .bar-track{flex:1;background:var(--gray);border-radius:6px;height:18px;overflow:hidden}
+.ychart .bar-fill{height:100%;background:linear-gradient(90deg,var(--navy),var(--navy2));border-radius:6px;transition:width .4s}
+.ychart .bar-v{font-size:10px;color:#999;width:62px;text-align:right;flex-shrink:0;font-family:'Lato',sans-serif;font-weight:700}
+
+/* 提醒橫幅 */
+.banner{margin:14px 16px 0;border-radius:14px;padding:13px 15px;display:flex;align-items:center;gap:11px;box-shadow:0 3px 10px rgba(0,0,0,.08)}
+.banner .bico{font-size:24px;flex-shrink:0}
+.banner .btxt{flex:1;font-size:13px;line-height:1.5}
+.banner .btxt b{font-weight:900}
+.banner.b-due{background:#FCEBEA;border:1.5px solid var(--warn);color:var(--warn)}
+.banner.b-today{background:#FFF6E0;border:1.5px solid var(--soon);color:#9a6f00}
+.banner.b-soon{background:#FBF6E8;border:1.5px solid var(--gold);color:var(--gold-d)}
+.card-btn{width:100%;padding:11px;background:var(--gold);color:var(--navy);border:none;border-radius:10px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;margin:2px 0 4px}
+.card-btn:active{transform:scale(.98)}
+
+/* 保單卡 / 列印彈窗 */
+.cardmask{position:fixed;inset:0;background:rgba(27,42,74,.7);z-index:200;display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+.cardmask.on{display:flex}
+.cardmask img{max-width:100%;width:360px;border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.4)}
+.cardmask .tip{color:#fff;font-size:13px;margin-top:14px;text-align:center;line-height:1.7}
+.cardmask .tip b{color:var(--gold)}
+.cardmask .cls{margin-top:16px;background:#fff;color:var(--navy);border:none;padding:11px 30px;border-radius:11px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer}
+
+/* 列印區（畫面隱藏，列印時顯示） */
+#printArea{display:none}
+@media print{
+  body>*{display:none!important}
+  #printArea{display:block!important;padding:0;color:#000;font-family:'Noto Sans TC',sans-serif}
+  #printArea .ph{border-bottom:3px solid #C9A84C;padding-bottom:10px;margin-bottom:16px}
+  #printArea .ph .b{font-size:12px;letter-spacing:3px;color:#A07830;font-weight:700}
+  #printArea .ph h1{font-size:22px;color:#1B2A4A;margin-top:3px}
+  #printArea .ph .sub{font-size:13px;color:#666;margin-top:4px}
+  #printArea table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+  #printArea th{background:#1B2A4A;color:#fff;padding:8px 6px;text-align:left}
+  #printArea td{padding:7px 6px;border-bottom:1px solid #ddd}
+  #printArea tfoot td{font-weight:900;border-top:2px solid #C9A84C;background:#FAF6EE}
+  #printArea .pf{margin-top:24px;font-size:11px;color:#999;text-align:center;border-top:1px solid #ddd;padding-top:10px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start">
+    <div>
+      <div class="brand">誠毅傳承 · CHENGYI</div>
+      <h1 id="pageTitle">繳費管家</h1>
+    </div>
+    <button onclick="openSettings()" style="background:rgba(255,255,255,.12);border:none;color:var(--gold);width:38px;height:38px;border-radius:10px;font-size:18px;cursor:pointer">🔔</button>
+  </div>
+  <div class="line"></div>
+</header>
+
+<!-- PAGE 1: 繳費清單 -->
+<div class="page on" id="page-list">
+  <div id="alertBanner"></div>
+  <div class="summary" id="summary"></div>
+  <div class="tabs" id="tabs"></div>
+  <div class="list" id="list"></div>
+</div>
+
+<!-- PAGE 2: 當月一覽表 -->
+<div class="page" id="page-month">
+  <div class="mhead">
+    <button onclick="shiftMonth(-1)">‹</button>
+    <div class="mtitle" id="mtitle"></div>
+    <button onclick="shiftMonth(1)">›</button>
+  </div>
+  <div class="mstat" id="mstat"></div>
+  <div style="padding:8px 16px 0"><button class="exp-btn" onclick="printMonth()">🖨️ 匯出 / 列印當月一覽（PDF）</button></div>
+  <div class="overtbl" id="overtbl"></div>
+  <div class="catbreak" id="catbreak"></div>
+</div>
+
+<!-- PAGE 3: 統計 / 年度行事曆 -->
+<div class="page" id="page-stat">
+  <div class="mhead">
+    <button onclick="shiftYear(-1)">‹</button>
+    <div class="mtitle" id="ytitle"></div>
+    <button onclick="shiftYear(1)">›</button>
+  </div>
+  <div class="mstat" id="ystat"></div>
+  <div style="padding:6px 16px 2px"><div class="sectlbl">📅 年度繳費行事曆</div></div>
+  <div id="yearCal" class="yearcal"></div>
+  <div style="padding:10px 16px 2px"><div class="sectlbl">📊 各月支出</div></div>
+  <div id="yearChart" class="ychart"></div>
+  <div style="padding:10px 16px 2px"><div class="sectlbl">🗂️ 年度分類占比</div></div>
+  <div id="yearCat" class="catbreak"></div>
+</div>
+
+<button class="fab" onclick="openSheet()">＋</button>
+
+<!-- Bottom nav -->
+<div class="bnav">
+  <button class="on" id="nav-list" onclick="goPage('list')"><span class="bi">📋</span>繳費清單</button>
+  <button id="nav-month" onclick="goPage('month')"><span class="bi">🗓️</span>當月一覽</button>
+  <button id="nav-stat" onclick="goPage('stat')"><span class="bi">📊</span>統計</button>
+</div>
+
+<!-- Add/Edit sheet -->
+<div class="mask" id="mask">
+  <div class="sheet">
+    <h2 id="sheetTitle">新增繳費項目</h2>
+    <div class="fld">
+      <label>類別</label>
+      <div class="cat-pick" id="catPick"></div>
+    </div>
+    <div class="fld">
+      <label>項目名稱</label>
+      <input id="f-name" placeholder="例：富邦人壽終身壽險">
+    </div>
+    <div class="row2">
+      <div class="fld">
+        <label>金額（NT$）</label>
+        <input id="f-amt" type="number" inputmode="numeric" placeholder="0">
+      </div>
+      <div class="fld">
+        <label>下次繳費日</label>
+        <input id="f-date" type="date">
+      </div>
+    </div>
+    <div class="fld">
+      <label>繳費週期</label>
+      <select id="f-cycle">
+        <option value="monthly">每月</option>
+        <option value="quarterly">每季</option>
+        <option value="halfyear">每半年</option>
+        <option value="yearly">每年</option>
+        <option value="once">單次（不重複）</option>
+      </select>
+      <div class="hint">繳費完成後，週期性項目會自動產生下一期</div>
+    </div>
+
+    <!-- 人壽保險專屬欄位 -->
+    <div class="policybox" id="policyBox" style="display:none">
+      <div class="pbtitle" onclick="togglePolicyDetail()" style="cursor:pointer;justify-content:space-between">
+        <span>🛡️ 保單資料（選填）</span>
+        <span id="policyArrow" style="font-size:12px;color:#999">展開填寫 ▼</span>
+      </div>
+      <div id="policyDetail" style="display:none">
+        <div class="row2">
+          <div class="fld"><label>保險公司</label><input id="f-company" placeholder="例：○○人壽"></div>
+          <div class="fld"><label>保單號碼</label><input id="f-policyno" placeholder="保單號碼（選填）"></div>
+        </div>
+        <div class="row2">
+          <div class="fld"><label>要保人</label><input id="f-holder" placeholder="要保人姓名"></div>
+          <div class="fld"><label>被保險人</label><input id="f-insured" placeholder="被保險人姓名"></div>
+        </div>
+        <div class="hint" style="color:var(--gold-d)">🔒 以上資料僅儲存在您的裝置，不會上傳，可不填。</div>
+        <button class="card-btn" type="button" onclick="exportPolicyCard()" style="margin-top:8px">🖼️ 產生保單明細卡（長按存圖）</button>
+      </div>
+    </div>
+
+    <button class="save" onclick="saveItem()">儲存</button>
+    <button class="del" id="delBtn" style="display:none" onclick="delItem()">刪除此項目</button>
+  </div>
+</div>
+
+<footer>誠於心・毅於行・傳於世・承於志<br><b>誠毅傳承</b>　熊誠毅<br><span style="font-size:9px;color:#ccc">本工具僅供個人繳費提醒，非保險公司官方系統</span></footer>
+
+<!-- 加到主畫面教學 -->
+<div class="mask" id="installmask">
+  <div class="sheet">
+    <h2>📲 加到主畫面</h2>
+    <p style="font-size:13px;color:#777;text-align:center;margin:-8px 0 16px;line-height:1.6">把這個工具變成手機上的 App 圖示<br>下次一點就開，不用記網址</p>
+    <div id="installSteps" style="font-size:15px;line-height:2;color:#444"></div>
+    <button class="save" style="margin-top:18px" onclick="document.getElementById('installmask').classList.remove('on')">我知道了</button>
+  </div>
+</div>
+
+<!-- 首次：隱私與使用說明 -->
+<div class="mask" id="privacymask">
+  <div class="sheet">
+    <h2>👋 歡迎使用繳費管家</h2>
+    <div style="background:var(--cream);border-radius:13px;padding:16px;margin-bottom:16px;font-size:13px;line-height:1.8;color:#555">
+      這是一個協助您管理各項繳費的小工具，由 <b style="color:var(--navy)">誠毅傳承</b> 提供。<br><br>
+      🔒 <b style="color:var(--navy)">您的資料只存在這支裝置</b><br>
+      所有輸入的內容（含金額、保單資料）僅儲存於您的手機/電腦，<b>不會上傳到任何伺服器</b>，我們也看不到。<br><br>
+      💾 <b style="color:var(--navy)">請定期備份</b><br>
+      若更換裝置或清除瀏覽器資料，內容會消失，建議用設定中的「匯出備份檔」保存。<br><br>
+      ⚠️ <b style="color:var(--navy)">使用提醒</b><br>
+      本工具僅供個人繳費提醒之用，<b>非保險公司官方系統</b>，實際保單權益與繳費資訊，請以保險公司及保單條款為準。
+    </div>
+    <button class="save" onclick="acceptPrivacy()">我了解，開始使用</button>
+  </div>
+</div>
+
+<!-- 歡迎引導：選擇常用項目 -->
+<div class="mask" id="welmask">
+  <div class="sheet">
+    <h2>👋 歡迎使用繳費管家</h2>
+    <p style="font-size:13px;color:#777;text-align:center;margin:-8px 0 16px;line-height:1.6">勾選你常用的繳費項目一鍵帶入<br>（金額與日期之後都可隨時修改）</p>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="exp-btn" style="padding:9px;font-size:13px" onclick="welAll(true)">全選</button>
+      <button class="exp-btn" style="padding:9px;font-size:13px" onclick="welAll(false)">全不選</button>
+    </div>
+    <div id="welList" style="max-height:46vh;overflow-y:auto;margin-bottom:14px"></div>
+    <button class="save" onclick="welAdd()">加入勾選項目</button>
+    <button class="del" style="color:#999;border-color:var(--gray)" onclick="welSkip()">先略過，之後自己加</button>
+  </div>
+</div>
+
+<!-- 提醒設定彈窗 -->
+<div class="mask" id="setmask">
+  <div class="sheet">
+    <h2>🔔 提醒設定</h2>
+    <div class="fld">
+      <label>提前提醒天數</label>
+      <select id="s-days">
+        <option value="1">到期前 1 天</option>
+        <option value="3">到期前 3 天</option>
+        <option value="5">到期前 5 天</option>
+        <option value="7">到期前 7 天</option>
+        <option value="14">到期前 14 天</option>
+      </select>
+      <div class="hint">清單上方會顯示「即將到期 / 今日到期 / 逾期」警示橫幅</div>
+    </div>
+    <div class="fld">
+      <label>瀏覽器通知</label>
+      <button class="exp-btn" id="notifyBtn" onclick="toggleNotify()">開啟桌面/手機通知</button>
+      <div class="hint">開啟後，每次打開 App 會推播當日與即將到期項目（需瀏覽器允許通知權限）</div>
+    </div>
+    <div class="fld">
+      <label>大字模式（長輩友善）</label>
+      <button class="exp-btn" id="bigBtn" onclick="toggleBig()">開啟大字顯示</button>
+      <div class="hint">字體與按鈕放大，看得更清楚</div>
+    </div>
+    <button class="save" onclick="saveSettingsUI()">儲存設定</button>
+    <button class="exp-btn" style="margin-top:10px" onclick="showInstall()">📲 如何加到手機主畫面（變成 App）</button>
+    <button class="exp-btn" style="margin-top:10px" onclick="document.getElementById('setmask').classList.remove('on');welSel=TEMPLATES.map(()=>true);renderWel();document.getElementById('welmask').classList.add('on')">➕ 帶入常用繳費項目範本</button>
+
+    <div style="border-top:1px solid var(--gray);margin:18px 0 14px"></div>
+    <div style="font-size:13px;font-weight:900;color:var(--navy);margin-bottom:10px">💾 資料備份與匯出</div>
+    <button class="exp-btn" style="margin-bottom:9px" onclick="exportBackup()">⬇️ 匯出備份檔（JSON，換機還原用）</button>
+    <button class="exp-btn" style="margin-bottom:9px" onclick="document.getElementById('importFile').click()">⬆️ 匯入備份檔還原</button>
+    <input type="file" id="importFile" accept="application/json,.json" style="display:none" onchange="importBackup(event)">
+    <button class="exp-btn" onclick="exportExcel()">📗 匯出全部明細（Excel / CSV）</button>
+  </div>
+</div>
+
+<!-- 保單明細卡彈窗 -->
+<div class="cardmask" id="cardmask">
+  <img id="cardimg" alt="保單明細卡">
+  <div class="tip">📱 <b>長按圖片</b> →「加入照片」即可存檔<br>電腦版請按右鍵另存圖片</div>
+  <button class="cls" onclick="document.getElementById('cardmask').classList.remove('on')">關閉</button>
+</div>
+
+<!-- 列印區 -->
+<div id="printArea"></div>
+
+<!-- 成功提示 toast -->
+<div id="toast"><div class="t-icon">🎉</div><div class="t-body"><div class="t-title"></div><div class="t-sub"></div></div></div>
+
+<!-- 自製確認彈窗（取代瀏覽器 confirm，相容 Documents 等內建瀏覽器）-->
+<div class="confirmmask" id="confirmmask">
+  <div class="confirmbox">
+    <div class="ctitle" id="confirmTitle">確認</div>
+    <div class="cmsg" id="confirmMsg"></div>
+    <div class="cbtns">
+      <button class="cbtn-cancel" id="confirmCancel">取消</button>
+      <button class="cbtn-ok" id="confirmOk">確定</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const CATS={
+  insurance:{e:'🛡️',n:'人壽保險'},
+  health:{e:'🏥',n:'醫療/健康險'},
+  car:{e:'🚗',n:'汽車保險'},
+  scooter:{e:'🛵',n:'機車保險'},
+  loan:{e:'🏦',n:'貸款'},
+  creditcard:{e:'💳',n:'信用卡'},
+  telecom:{e:'📱',n:'電信費'},
+  utility:{e:'💡',n:'水電瓦斯'},
+  internet:{e:'🌐',n:'網路/第四台'},
+  rent:{e:'🏠',n:'房租/管理費'},
+  tax:{e:'🧾',n:'稅金'},
+  tuition:{e:'🎓',n:'學費/補習'},
+  subscribe:{e:'🎬',n:'訂閱服務'},
+  invest:{e:'📈',n:'定期定額/投資'},
+  other:{e:'📋',n:'其他'}
+};
+const CYCLE={monthly:'每月',quarterly:'每季',halfyear:'每半年',yearly:'每年',once:'單次'};
+const KEY='cy_payment_tracker_v2';
+const SET_KEY='cy_pt_settings_v1';
+let settings=loadSettings();
+let data=load(), curCat='insurance', editId=null, filter='all', curPage='list';
+let mView=(()=>{const d=new Date();return{y:d.getFullYear(),m:d.getMonth()}})();
+let yView=new Date().getFullYear();
+
+function loadSettings(){try{return Object.assign({remindDays:3,notify:false,big:false},JSON.parse(localStorage.getItem(SET_KEY))||{})}catch(e){return{remindDays:3,notify:false,big:false}}}
+function saveSettings(){localStorage.setItem(SET_KEY,JSON.stringify(settings))}
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||migrate()}catch(e){return[]}}
+function migrate(){try{const old=JSON.parse(localStorage.getItem('cy_payment_tracker_v1'));if(old&&old.length)return old}catch(e){}return[]}
+function save(){localStorage.setItem(KEY,JSON.stringify(data))}
+function uid(){return Date.now()+''+Math.floor(Math.random()*999)}
+
+/* 自製確認框：回傳 Promise，相容 Documents 等不支援原生 confirm 的瀏覽器 */
+function appConfirm(msg,title){
+  return new Promise(resolve=>{
+    const mask=document.getElementById('confirmmask');
+    document.getElementById('confirmTitle').textContent=title||'確認';
+    document.getElementById('confirmMsg').innerHTML=msg;
+    const ok=document.getElementById('confirmOk'),cancel=document.getElementById('confirmCancel');
+    const close=(val)=>{mask.classList.remove('on');ok.onclick=null;cancel.onclick=null;mask.onclick=null;resolve(val);};
+    ok.onclick=()=>close(true);
+    cancel.onclick=()=>close(false);
+    mask.onclick=(e)=>{if(e.target===mask)close(false);};
+    mask.classList.add('on');
+  });
+}
+function today(){const d=new Date();d.setHours(0,0,0,0);return d}
+function fmt(n){return Number(n).toLocaleString('en-US')}
+function daysLeft(ds){return Math.round((new Date(ds)-today())/86400000)}
+function nextDate(ds,cy){const d=new Date(ds);if(cy==='monthly')d.setMonth(d.getMonth()+1);else if(cy==='quarterly')d.setMonth(d.getMonth()+3);else if(cy==='halfyear')d.setMonth(d.getMonth()+6);else if(cy==='yearly')d.setFullYear(d.getFullYear()+1);return d.toISOString().slice(0,10)}
+function status(it){if(it.paid)return'paid';const d=daysLeft(it.date);if(d<0)return'due';if(d<=7)return'soon';return'ok'}
+
+// 常用繳費範本（首次開啟引導頁可勾選加入）
+function isoFromToday(o){const d=today();d.setDate(d.getDate()+o);return d.toISOString().slice(0,10)}
+const TEMPLATES=[
+  {cat:'insurance',name:'人壽保險費（終身壽險）',amt:38500,cycle:'yearly',off:15,company:'',policyno:'',holder:'',insured:''},
+  {cat:'health',name:'醫療/實支實付保險',amt:12600,cycle:'yearly',off:20},
+  {cat:'car',name:'汽車保險（強制＋任意）',amt:15800,cycle:'yearly',off:30},
+  {cat:'scooter',name:'機車保險（強制險）',amt:1200,cycle:'yearly',off:45},
+  {cat:'loan',name:'房屋貸款',amt:22400,cycle:'monthly',off:5},
+  {cat:'creditcard',name:'信用卡帳單',amt:18000,cycle:'monthly',off:12},
+  {cat:'telecom',name:'中華電信（手機）',amt:1399,cycle:'monthly',off:18},
+  {cat:'utility',name:'台電電費',amt:2680,cycle:'monthly',off:22},
+  {cat:'utility',name:'自來水費',amt:680,cycle:'quarterly',off:25},
+  {cat:'utility',name:'瓦斯費',amt:520,cycle:'monthly',off:8},
+  {cat:'internet',name:'家用網路/第四台',amt:899,cycle:'monthly',off:14},
+  {cat:'rent',name:'房租/管理費',amt:25000,cycle:'monthly',off:1},
+  {cat:'tax',name:'綜合所得稅',amt:0,cycle:'yearly',off:60},
+  {cat:'tuition',name:'子女學費/補習費',amt:15000,cycle:'monthly',off:10},
+  {cat:'subscribe',name:'串流訂閱（Netflix/YouTube 等）',amt:390,cycle:'monthly',off:16},
+  {cat:'invest',name:'定期定額/基金扣款',amt:10000,cycle:'monthly',off:3}
+];
+
+/* ---------- 頁面切換 ---------- */
+function goPage(p){
+  curPage=p;
+  document.querySelectorAll('.page').forEach(e=>e.classList.remove('on'));
+  document.getElementById('page-'+p).classList.add('on');
+  document.getElementById('nav-list').classList.toggle('on',p==='list');
+  document.getElementById('nav-month').classList.toggle('on',p==='month');
+  document.getElementById('nav-stat').classList.toggle('on',p==='stat');
+  const titles={list:'繳費管家',month:'當月繳費一覽',stat:'統計與行事曆'};
+  document.getElementById('pageTitle').textContent=titles[p];
+  if(p==='month')renderMonth();
+  else if(p==='stat')renderStat();
+  else render();
+}
+
+/* ---------- 繳費清單 ---------- */
+function render(){
+  renderBanner();
+  const upcoming=data.filter(d=>!d.paid);
+  const totalDue=upcoming.reduce((s,d)=>s+Number(d.amt),0);
+  const overdue=upcoming.filter(d=>daysLeft(d.date)<0);
+  const soon=upcoming.filter(d=>{const x=daysLeft(d.date);return x>=0&&x<=7});
+  document.getElementById('summary').innerHTML=`
+    <div class="scard"><div class="lab">待繳總額</div><div class="val"><small>NT$ </small>${fmt(totalDue)}</div></div>
+    <div class="scard due"><div class="lab">已逾期</div><div class="val">${overdue.length}<small> 筆</small></div></div>
+    <div class="scard soon"><div class="lab">7天內到期</div><div class="val">${soon.length}<small> 筆</small></div></div>`;
+
+  const cnt={all:upcoming.length};Object.keys(CATS).forEach(c=>cnt[c]=upcoming.filter(d=>d.cat===c).length);
+  let tabs=`<div class="tab ${filter==='all'?'on':''}" onclick="setFilter('all')">全部 ${cnt.all}</div>`;
+  Object.entries(CATS).forEach(([k,v])=>{if(cnt[k]>0||filter===k)tabs+=`<div class="tab ${filter===k?'on':''}" onclick="setFilter('${k}')">${v.e} ${v.n} ${cnt[k]}</div>`});
+  tabs+=`<div class="tab ${filter==='paid'?'on':''}" onclick="setFilter('paid')">✓ 已繳</div>`;
+  document.getElementById('tabs').innerHTML=tabs;
+
+  let arr=[...data];
+  if(filter==='paid')arr=arr.filter(d=>d.paid);
+  else if(filter==='all')arr=arr.filter(d=>!d.paid);
+  else arr=arr.filter(d=>d.cat===filter&&!d.paid);
+  arr.sort((a,b)=>new Date(a.date)-new Date(b.date));
+
+  if(arr.length===0){document.getElementById('list').innerHTML=`<div class="empty">目前沒有項目 🎉</div>`;return}
+  document.getElementById('list').innerHTML=arr.map(it=>{
+    const st=status(it),c=CATS[it.cat],d=daysLeft(it.date);
+    let metaTxt;
+    if(it.paid)metaTxt=`<b class="ok">✓ 已於 ${it.paidDate} 繳清</b>`;
+    else if(d<0)metaTxt=`<b>已逾期 ${-d} 天</b> · ${CYCLE[it.cycle]}`;
+    else if(d===0)metaTxt=`<b class="soon">今天到期</b> · ${CYCLE[it.cycle]}`;
+    else if(d<=7)metaTxt=`<b class="soon">${d} 天後到期</b> · ${CYCLE[it.cycle]}`;
+    else metaTxt=`${it.date} · ${CYCLE[it.cycle]}`;
+    let subTxt='';
+    if(it.cat==='insurance'&&(it.company||it.policyno)){
+      const parts=[];if(it.company)parts.push(it.company);if(it.policyno)parts.push('保單'+it.policyno);
+      if(it.insured)parts.push('被保'+it.insured);
+      subTxt=`<div class="sub">${parts.join('　·　')}</div>`;
+    }
+    return `<div class="item s-${st}" onclick="openSheet('${it.id}')">
+      <div class="ico">${c.e}</div>
+      <div class="mid"><div class="nm">${it.name}</div><div class="meta">${metaTxt}</div>${subTxt}</div>
+      <div class="right">
+        <div class="amt"><small>NT$</small> ${fmt(it.amt)}</div>
+        ${it.paid?'<div class="paid-stamp">已完成</div>':`<button class="btn-pay" onclick="event.stopPropagation();markPaid('${it.id}')">繳費完成</button>`}
+      </div>
+      <button class="btn-del" data-del="${it.id}" title="刪除">✕</button>
+    </div>`;
+  }).join('');
+}
+function setFilter(f){filter=f;render()}
+
+/* ---------- 直接刪除（事件委派，最穩健）---------- */
+async function deleteFromList(id){
+  const it=data.find(d=>String(d.id)===String(id));
+  if(!it)return;
+  const ok=await appConfirm(`確定刪除「<b>${it.name}</b>」？`,'刪除項目');
+  if(!ok)return;
+  data=data.filter(d=>String(d.id)!==String(id));
+  save();refreshCurrent();
+}
+// 用委派攔截刪除鈕點擊，避免 inline onclick 在某些環境失效
+document.getElementById('list').addEventListener('click',function(e){
+  const btn=e.target.closest('.btn-del');
+  if(btn){e.stopPropagation();e.preventDefault();deleteFromList(btn.getAttribute('data-del'));}
+});
+
+/* ---------- 到期提醒橫幅 ---------- */
+function buckets(){
+  const up=data.filter(d=>!d.paid);
+  const due=up.filter(d=>daysLeft(d.date)<0);
+  const todayDue=up.filter(d=>daysLeft(d.date)===0);
+  const soon=up.filter(d=>{const x=daysLeft(d.date);return x>0&&x<=settings.remindDays});
+  return{due,todayDue,soon};
+}
+function renderBanner(){
+  const b=document.getElementById('alertBanner');
+  const{due,todayDue,soon}=buckets();
+  let html='';
+  if(due.length){
+    const sum=due.reduce((s,d)=>s+Number(d.amt),0);
+    html+=`<div class="banner b-due" onclick="setFilter('all')"><span class="bico">⛔</span><div class="btxt"><b>${due.length} 筆已逾期！</b>未繳 NT$ ${fmt(sum)}，請盡速處理</div></div>`;
+  }
+  if(todayDue.length){
+    const sum=todayDue.reduce((s,d)=>s+Number(d.amt),0);
+    html+=`<div class="banner b-today" onclick="setFilter('all')"><span class="bico">⏰</span><div class="btxt"><b>今日到期 ${todayDue.length} 筆</b>　應繳 NT$ ${fmt(sum)}</div></div>`;
+  }
+  if(soon.length){
+    const names=soon.slice(0,2).map(s=>s.name).join('、')+(soon.length>2?' 等':'');
+    html+=`<div class="banner b-soon" onclick="setFilter('all')"><span class="bico">🔔</span><div class="btxt"><b>${settings.remindDays} 天內到期 ${soon.length} 筆</b>　${names}</div></div>`;
+  }
+  b.innerHTML=html;
+}
+
+/* ---------- 設定 / 通知 ---------- */
+function openSettings(){
+  document.getElementById('s-days').value=settings.remindDays;
+  const nb=document.getElementById('notifyBtn');
+  const on=settings.notify&&('Notification'in window)&&Notification.permission==='granted';
+  nb.classList.toggle('act',on);nb.textContent=on?'✓ 通知已開啟':'開啟桌面/手機通知';
+  const bb=document.getElementById('bigBtn');
+  bb.classList.toggle('act',settings.big);bb.textContent=settings.big?'✓ 大字模式已開啟':'開啟大字顯示';
+  document.getElementById('setmask').classList.add('on');
+}
+function toggleBig(){
+  settings.big=!settings.big;saveSettings();applyBig();
+  const bb=document.getElementById('bigBtn');
+  bb.classList.toggle('act',settings.big);bb.textContent=settings.big?'✓ 大字模式已開啟':'開啟大字顯示';
+}
+function applyBig(){document.body.classList.toggle('big',!!settings.big);}
+function showInstall(){
+  const ua=navigator.userAgent;
+  const isiOS=/iPhone|iPad|iPod/.test(ua);
+  const isAndroid=/Android/.test(ua);
+  let steps;
+  if(isiOS){
+    steps=`<b style="color:var(--navy)">iPhone / iPad（Safari）</b><br>
+    1️⃣ 點畫面下方中間的「分享」圖示 <span style="font-size:18px">⬆️</span><br>
+    2️⃣ 往下滑，找到「加入主畫面」<br>
+    3️⃣ 點右上角「新增」<br>
+    完成！桌面就會出現 App 圖示 🎉`;
+  }else if(isAndroid){
+    steps=`<b style="color:var(--navy)">Android（Chrome）</b><br>
+    1️⃣ 點右上角「⋮」選單<br>
+    2️⃣ 選「加到主畫面」<br>
+    3️⃣ 點「新增」<br>
+    完成！桌面就會出現 App 圖示 🎉`;
+  }else{
+    steps=`<b style="color:var(--navy)">手機加到主畫面</b><br>
+    <b>iPhone：</b>用 Safari 開啟 → 點下方「分享」⬆️ → 「加入主畫面」<br><br>
+    <b>Android：</b>用 Chrome 開啟 → 右上「⋮」→ 「加到主畫面」<br><br>
+    完成後桌面會出現 App 圖示，一點就開 🎉`;
+  }
+  document.getElementById('installSteps').innerHTML=steps;
+  document.getElementById('setmask').classList.remove('on');
+  document.getElementById('installmask').classList.add('on');
+}
+function toggleNotify(){
+  if(!('Notification'in window)){alert('此瀏覽器不支援通知');return}
+  Notification.requestPermission().then(p=>{
+    settings.notify=(p==='granted');saveSettings();
+    const nb=document.getElementById('notifyBtn');
+    nb.classList.toggle('act',settings.notify);
+    nb.textContent=settings.notify?'✓ 通知已開啟':'開啟桌面/手機通知';
+    if(settings.notify)fireNotifications();
+  });
+}
+function saveSettingsUI(){
+  settings.remindDays=Number(document.getElementById('s-days').value);
+  saveSettings();
+  document.getElementById('setmask').classList.remove('on');
+  render();
+}
+function fireNotifications(){
+  if(!settings.notify||!('Notification'in window)||Notification.permission!=='granted')return;
+  const{due,todayDue,soon}=buckets();
+  const lines=[];
+  if(due.length)lines.push(`逾期 ${due.length} 筆`);
+  if(todayDue.length)lines.push(`今日到期 ${todayDue.length} 筆`);
+  if(soon.length)lines.push(`${settings.remindDays} 天內 ${soon.length} 筆`);
+  if(!lines.length)return;
+  // 一天只推一次
+  const tag=today().toISOString().slice(0,10);
+  if(localStorage.getItem('cy_pt_notified')===tag)return;
+  localStorage.setItem('cy_pt_notified',tag);
+  try{new Notification('繳費管家 · 誠毅傳承',{body:'待繳提醒：'+lines.join('、'),tag:'cy-pay-'+tag});}catch(e){}
+}
+document.getElementById('setmask').addEventListener('click',e=>{if(e.target.id==='setmask')e.currentTarget.classList.remove('on')});
+document.getElementById('installmask').addEventListener('click',e=>{if(e.target.id==='installmask')e.currentTarget.classList.remove('on')});
+
+/* ---------- 當月一覽表 ---------- */
+function shiftMonth(d){let m=mView.m+d,y=mView.y;if(m<0){m=11;y--}if(m>11){m=0;y++}mView={y,m};renderMonth()}
+
+function inMonth(ds){const d=new Date(ds);return d.getFullYear()===mView.y&&d.getMonth()===mView.m}
+
+function renderMonth(){
+  document.getElementById('mtitle').textContent=`${mView.y} 年 ${mView.m+1} 月`;
+  // 當月所有應繳/已繳項目（含已繳歸檔的當期）
+  const rows=data.filter(d=>inMonth(d.date)).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  const total=rows.reduce((s,r)=>s+Number(r.amt),0);
+  const paidSum=rows.filter(r=>r.paid).reduce((s,r)=>s+Number(r.amt),0);
+  const unpaidSum=total-paidSum;
+
+  document.getElementById('mstat').innerHTML=`
+    <div class="scard"><div class="lab">當月總額</div><div class="val"><small>NT$ </small>${fmt(total)}</div></div>
+    <div class="scard"><div class="lab">已繳</div><div class="val" style="color:var(--ok)"><small>NT$ </small>${fmt(paidSum)}</div></div>
+    <div class="scard"><div class="lab">未繳</div><div class="val" style="color:var(--warn)"><small>NT$ </small>${fmt(unpaidSum)}</div></div>`;
+
+  if(rows.length===0){
+    document.getElementById('overtbl').innerHTML=`<div class="empty">本月沒有繳費項目</div>`;
+    document.getElementById('catbreak').innerHTML='';return;
+  }
+
+  let body=rows.map(it=>{
+    const c=CATS[it.cat];const dd=new Date(it.date).getDate();
+    let dot,cls='';
+    if(it.paid){dot='var(--ok)';cls='r-paid'}
+    else if(daysLeft(it.date)<0){dot='var(--warn)';cls='r-due'}
+    else if(daysLeft(it.date)<=7){dot='var(--soon)'}
+    else{dot='var(--gray)'}
+    const stTxt=it.paid?'已繳':(daysLeft(it.date)<0?'逾期':'待繳');
+    return `<tr class="${cls}" onclick="goEdit('${it.id}')">
+      <td class="tdate">${mView.m+1}/${dd}</td>
+      <td class="tnm"><span class="pdot" style="background:${dot}"></span>${c.e} ${it.name}</td>
+      <td style="font-size:11px;color:#999;white-space:nowrap">${stTxt}</td>
+      <td class="tamt">${fmt(it.amt)}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('overtbl').innerHTML=`<table>
+    <thead><tr><th>日期</th><th>項目</th><th>狀態</th><th style="text-align:right">金額</th></tr></thead>
+    <tbody>${body}</tbody>
+    <tfoot><tr><td colspan="3">合計</td><td style="text-align:right">NT$ ${fmt(total)}</td></tr></tfoot>
+  </table>`;
+
+  // 分類統計
+  const byCat={};rows.forEach(r=>{byCat[r.cat]=byCat[r.cat]||{sum:0,n:0};byCat[r.cat].sum+=Number(r.amt);byCat[r.cat].n++});
+  document.getElementById('catbreak').innerHTML=Object.entries(byCat)
+    .sort((a,b)=>b[1].sum-a[1].sum)
+    .map(([k,v])=>`<div class="crow"><span class="ce">${CATS[k].e}</span><span class="cn">${CATS[k].n}</span><span class="cc">${v.n} 筆</span><span class="ca">NT$ ${fmt(v.sum)}</span></div>`).join('');
+}
+
+function goEdit(id){goPage('list');setTimeout(()=>openSheet(id),50)}
+
+/* ---------- 統計 / 年度行事曆 ---------- */
+function shiftYear(d){yView+=d;renderStat()}
+function inYearMonth(ds,y,m){const d=new Date(ds);return d.getFullYear()===y&&d.getMonth()===m}
+function renderStat(){
+  document.getElementById('ytitle').textContent=`${yView} 年`;
+  const rows=data.filter(d=>new Date(d.date).getFullYear()===yView);
+  const total=rows.reduce((s,r)=>s+Number(r.amt),0);
+  const paid=rows.filter(r=>r.paid).reduce((s,r)=>s+Number(r.amt),0);
+  const avg=total/12;
+  document.getElementById('ystat').innerHTML=`
+    <div class="scard"><div class="lab">年度總額</div><div class="val"><small>NT$ </small>${fmt(Math.round(total))}</div></div>
+    <div class="scard"><div class="lab">已繳</div><div class="val" style="color:var(--ok)"><small>NT$ </small>${fmt(Math.round(paid))}</div></div>
+    <div class="scard"><div class="lab">月均</div><div class="val"><small>NT$ </small>${fmt(Math.round(avg))}</div></div>`;
+
+  // 各月金額
+  const mSum=Array(12).fill(0),mCnt=Array(12).fill(0);
+  rows.forEach(r=>{const m=new Date(r.date).getMonth();mSum[m]+=Number(r.amt);mCnt[m]++;});
+  const curM=new Date().getMonth(),curY=new Date().getFullYear();
+  // 行事曆
+  document.getElementById('yearCal').innerHTML=mSum.map((s,i)=>{
+    const isCur=(yView===curY&&i===curM);
+    return `<div class="ycell ${isCur?'cur':''} ${mCnt[i]?'':'empty-m'}" onclick="jumpMonth(${yView},${i})">
+      <div class="ym">${i+1} 月</div>
+      <div class="yc">${mCnt[i]?mCnt[i]+' 筆':'—'}</div>
+      <div class="ya">${mCnt[i]?'<small>NT$</small> '+fmt(Math.round(s)):''}</div>
+    </div>`;
+  }).join('');
+  // 長條圖
+  const max=Math.max(...mSum,1);
+  document.getElementById('yearChart').innerHTML=mSum.map((s,i)=>
+    `<div class="bar-row"><span class="bar-m">${i+1}月</span><div class="bar-track"><div class="bar-fill" style="width:${s/max*100}%"></div></div><span class="bar-v">${s?fmt(Math.round(s)):'0'}</span></div>`).join('');
+  // 分類占比
+  const byCat={};rows.forEach(r=>{byCat[r.cat]=byCat[r.cat]||{sum:0,n:0};byCat[r.cat].sum+=Number(r.amt);byCat[r.cat].n++;});
+  const yc=document.getElementById('yearCat');
+  if(Object.keys(byCat).length===0){yc.innerHTML='<div class="empty">本年度尚無資料</div>';}
+  else yc.innerHTML=Object.entries(byCat).sort((a,b)=>b[1].sum-a[1].sum).map(([k,v])=>{
+    const pct=total?Math.round(v.sum/total*100):0;
+    return `<div class="crow"><span class="ce">${CATS[k].e}</span><span class="cn">${CATS[k].n}</span><span class="cc">${v.n} 筆 · ${pct}%</span><span class="ca">NT$ ${fmt(Math.round(v.sum))}</span></div>`;
+  }).join('');
+}
+function jumpMonth(y,m){mView={y,m};goPage('month');}
+
+/* ---------- 備份 / 還原 / 匯出 ---------- */
+function dl(filename,content,type){
+  const blob=new Blob([content],{type});const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();
+  document.body.removeChild(a);setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function exportBackup(){
+  const payload={app:'cy-payment-tracker',version:2,exportedAt:new Date().toISOString(),settings,data};
+  dl(`繳費管家備份_${today().toISOString().slice(0,10)}.json`,JSON.stringify(payload,null,2),'application/json');
+  setTimeout(()=>alert('✅ 備份檔已下載。\n🔒 此檔內含您的繳費與保單資料，請妥善保管、勿任意外傳。'),300);
+}
+function importBackup(ev){
+  const f=ev.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=async()=>{
+    try{
+      const obj=JSON.parse(r.result);
+      const arr=Array.isArray(obj)?obj:obj.data;
+      if(!Array.isArray(arr))throw 0;
+      const ok=await appConfirm(`即將還原 <b>${arr.length}</b> 筆資料，會覆蓋目前內容，確定？`,'匯入備份');
+      if(!ok){ev.target.value='';return;}
+      data=arr;if(obj.settings)settings=Object.assign(settings,obj.settings);
+      save();saveSettings();
+      alert('還原完成！');
+      document.getElementById('setmask').classList.remove('on');
+      goPage('list');
+    }catch(e){alert('檔案格式不正確，請選擇本 App 匯出的備份檔');}
+    ev.target.value='';
+  };
+  r.readAsText(f);
+}
+function csvCell(v){v=String(v==null?'':v);return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
+function exportExcel(){
+  const head=['類別','項目名稱','金額','繳費日','繳費週期','狀態','繳清日','保險公司','保單號碼','要保人','被保險人'];
+  const lines=[head.map(csvCell).join(',')];
+  [...data].sort((a,b)=>new Date(a.date)-new Date(b.date)).forEach(it=>{
+    lines.push([CATS[it.cat].n,it.name,it.amt,it.date,CYCLE[it.cycle],it.paid?'已繳':'未繳',it.paidDate||'',it.company||'',it.policyno||'',it.holder||'',it.insured||''].map(csvCell).join(','));
+  });
+  const csv='\uFEFF'+lines.join('\r\n'); // BOM 讓 Excel 正確顯示中文
+  dl(`繳費明細_${today().toISOString().slice(0,10)}.csv`,csv,'text/csv;charset=utf-8');
+}
+
+/* ---------- 繳費完成 ---------- */
+function markPaid(id){
+  const it=data.find(d=>String(d.id)===String(id));if(!it)return;
+  const pd=today().toISOString().slice(0,10);
+  if(it.cycle==='once'){it.paid=true;it.paidDate=pd}
+  else{
+    data.push({...it,id:uid(),paid:true,paidDate:pd});
+    it.date=nextDate(it.date,it.cycle);
+  }
+  save();render();
+  showToast(`✅ 已完成繳費`,`「${it.name}」已標記為繳清`);
+}
+
+/* ---------- 成功提示 ---------- */
+let toastTimer=null;
+function showToast(title,sub){
+  let t=document.getElementById('toast');
+  t.querySelector('.t-title').textContent=title;
+  t.querySelector('.t-sub').textContent=sub||'';
+  t.classList.add('on');
+  if(navigator.vibrate)try{navigator.vibrate(40)}catch(e){}
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('on'),2200);
+}
+
+/* ---------- 新增 / 編輯 ---------- */
+function togglefields(){document.getElementById('policyBox').style.display=curCat==='insurance'?'block':'none'}
+function togglePolicyDetail(){
+  const d=document.getElementById('policyDetail'),a=document.getElementById('policyArrow');
+  const open=d.style.display!=='none';
+  d.style.display=open?'none':'block';
+  a.textContent=open?'展開填寫 ▼':'收合 ▲';
+}
+
+function openSheet(id){
+  editId=id||null;
+  const del=document.getElementById('delBtn');
+  const g=i=>document.getElementById(i);
+  if(id){
+    const it=data.find(d=>String(d.id)===String(id));
+    if(!it){alert('找不到此項目');return;}
+    g('sheetTitle').textContent='編輯項目';
+    curCat=it.cat;
+    g('f-name').value=it.name; g('f-amt').value=it.amt; g('f-date').value=it.date; g('f-cycle').value=it.cycle;
+    g('f-company').value=it.company||''; g('f-policyno').value=it.policyno||'';
+    g('f-holder').value=it.holder||''; g('f-insured').value=it.insured||'';
+    del.style.display='block';
+  }else{
+    g('sheetTitle').textContent='新增繳費項目';
+    curCat='insurance';
+    g('f-name').value=''; g('f-amt').value=''; g('f-date').value=today().toISOString().slice(0,10); g('f-cycle').value='monthly';
+    g('f-company').value=''; g('f-policyno').value=''; g('f-holder').value=''; g('f-insured').value='';
+    del.style.display='none';
+  }
+  renderCatPick();togglefields();
+  // 保單明細：有資料則展開，否則收合
+  const hasPolicy=g('f-company').value||g('f-policyno').value||g('f-holder').value||g('f-insured').value;
+  const pd=document.getElementById('policyDetail'),pa=document.getElementById('policyArrow');
+  if(pd){pd.style.display=hasPolicy?'block':'none';pa.textContent=hasPolicy?'收合 ▲':'展開填寫 ▼';}
+  document.getElementById('mask').classList.add('on');
+}
+function closeSheet(){document.getElementById('mask').classList.remove('on')}
+document.getElementById('mask').addEventListener('click',e=>{if(e.target.id==='mask')closeSheet()});
+
+function renderCatPick(){
+  document.getElementById('catPick').innerHTML=Object.entries(CATS).map(([k,v])=>
+    `<div class="cp ${curCat===k?'on':''}" onclick="curCat='${k}';renderCatPick();togglefields()"><span class="e">${v.e}</span>${v.n}</div>`).join('');
+}
+
+function saveItem(){
+  const g=i=>document.getElementById(i).value;
+  const name=g('f-name').trim(),amt=g('f-amt'),date=g('f-date'),cycle=g('f-cycle');
+  if(!name){alert('請輸入項目名稱');return}
+  if(!amt||amt<=0){alert('請輸入金額');return}
+  if(!date){alert('請選擇繳費日');return}
+  const extra=curCat==='insurance'?{company:g('f-company').trim(),policyno:g('f-policyno').trim(),holder:g('f-holder').trim(),insured:g('f-insured').trim()}:{};
+  if(editId){
+    const it=data.find(d=>String(d.id)===String(editId));
+    if(it)Object.assign(it,{cat:curCat,name,amt:Number(amt),date,cycle},extra);
+  }else{
+    data.push({id:uid(),cat:curCat,name,amt:Number(amt),date,cycle,paid:false,...extra});
+  }
+  save();closeSheet();
+  refreshCurrent();
+}
+
+async function delItem(){
+  if(!editId){closeSheet();return;}
+  const it=data.find(d=>String(d.id)===String(editId));
+  const ok=await appConfirm(`確定刪除「<b>${it?it.name:''}</b>」？`,'刪除項目');
+  if(!ok)return;
+  const before=data.length;
+  data=data.filter(d=>String(d.id)!==String(editId));
+  save();closeSheet();
+  refreshCurrent();
+  if(data.length===before)alert('刪除失敗，請重新整理頁面後再試一次');
+}
+function refreshCurrent(){
+  if(curPage==='month')renderMonth();
+  else if(curPage==='stat')renderStat();
+  else render();
+}
+
+/* ---------- 保單明細卡（Canvas 存圖）---------- */
+function exportPolicyCard(){
+  const g=i=>document.getElementById(i).value.trim();
+  const name=g('f-name'),company=g('f-company'),policyno=g('f-policyno'),holder=g('f-holder'),insured=g('f-insured');
+  const amt=g('f-amt'),date=g('f-date'),cycle=document.getElementById('f-cycle').value;
+  if(!company&&!policyno&&!name){alert('請先填寫保單資料');return}
+  const W=720,H=1000,cv=document.createElement('canvas');cv.width=W;cv.height=H;
+  const x=cv.getContext('2d');
+  // 底
+  x.fillStyle='#FAF6EE';x.fillRect(0,0,W,H);
+  // 頂部海軍藍
+  const grd=x.createLinearGradient(0,0,W,200);grd.addColorStop(0,'#1B2A4A');grd.addColorStop(1,'#2E4A7A');
+  x.fillStyle=grd;x.fillRect(0,0,W,200);
+  x.fillStyle='#C9A84C';x.fillRect(0,200,W,5);
+  // 標題
+  x.fillStyle='#C9A84C';x.font='700 22px "Noto Sans TC",sans-serif';x.fillText('誠毅傳承 · CHENGYI',48,66);
+  x.fillStyle='#fff';x.font='900 40px "Noto Sans TC",sans-serif';x.fillText('保單明細卡',48,128);
+  x.fillStyle='rgba(255,255,255,.7)';x.font='400 20px "Noto Sans TC",sans-serif';x.fillText('Policy Summary',48,166);
+  // 內容列
+  const rows=[['保險公司',company||'—'],['保單號碼',policyno||'—'],['要保人',holder||'—'],['被保險人',insured||'—'],['商品名稱',name||'—'],['應繳保費','NT$ '+(amt?Number(amt).toLocaleString('en-US'):'—')],['繳費週期',{monthly:'每月',quarterly:'每季',halfyear:'每半年',yearly:'每年',once:'單次'}[cycle]||''],['下次繳費日',date||'—']];
+  let y=270;
+  rows.forEach((r,i)=>{
+    if(i%2===0){x.fillStyle='#fff';x.fillRect(40,y-34,W-80,64);}
+    x.fillStyle='#A07830';x.font='700 22px "Noto Sans TC",sans-serif';x.fillText(r[0],64,y+8);
+    x.fillStyle='#1B2A4A';x.font='700 26px "Noto Sans TC",sans-serif';
+    let val=String(r[1]);if(val.length>16)x.font='700 21px "Noto Sans TC",sans-serif';
+    x.textAlign='right';x.fillText(val,W-64,y+8);x.textAlign='left';
+    y+=72;
+  });
+  // 分隔
+  x.strokeStyle='#C9A84C';x.lineWidth=2;x.beginPath();x.moveTo(48,y+6);x.lineTo(W-48,y+6);x.stroke();
+  // 頁尾
+  x.fillStyle='#1B2A4A';x.font='900 24px "Noto Sans TC",sans-serif';x.textAlign='center';
+  x.fillText('熊誠毅 ｜ 誠毅傳承',W/2,H-72);
+  x.fillStyle='#A07830';x.font='400 17px "Noto Sans TC",sans-serif';
+  x.fillText('誠於心・毅於行・傳於世・承於志',W/2,H-40);
+  x.textAlign='left';
+  document.getElementById('cardimg').src=cv.toDataURL('image/png');
+  document.getElementById('cardmask').classList.add('on');
+}
+
+/* ---------- 當月一覽列印 / PDF ---------- */
+function printMonth(){
+  const rows=data.filter(d=>inMonth(d.date)).sort((a,b)=>new Date(a.date)-new Date(b.date));
+  if(rows.length===0){alert('本月沒有繳費項目');return}
+  const total=rows.reduce((s,r)=>s+Number(r.amt),0);
+  const paidSum=rows.filter(r=>r.paid).reduce((s,r)=>s+Number(r.amt),0);
+  let body=rows.map(it=>{
+    const c=CATS[it.cat],dd=new Date(it.date).getDate();
+    const st=it.paid?'已繳':(daysLeft(it.date)<0?'逾期':'待繳');
+    const sub=(it.cat==='insurance'&&(it.company||it.policyno))?` <span style="color:#999;font-size:11px">(${[it.company,it.policyno].filter(Boolean).join(' ')})</span>`:'';
+    return `<tr><td>${mView.m+1}/${dd}</td><td>${c.e} ${it.name}${sub}</td><td>${st}</td><td style="text-align:right">${fmt(it.amt)}</td></tr>`;
+  }).join('');
+  document.getElementById('printArea').innerHTML=`
+    <div class="ph"><div class="b">誠毅傳承 · CHENGYI</div><h1>當月繳費一覽表</h1>
+      <div class="sub">${mView.y} 年 ${mView.m+1} 月　·　共 ${rows.length} 筆　·　已繳 NT$ ${fmt(paidSum)} ／ 未繳 NT$ ${fmt(total-paidSum)}</div></div>
+    <table><thead><tr><th>日期</th><th>項目</th><th>狀態</th><th style="text-align:right">金額 (NT$)</th></tr></thead>
+    <tbody>${body}</tbody>
+    <tfoot><tr><td colspan="3">合計</td><td style="text-align:right">NT$ ${fmt(total)}</td></tr></tfoot></table>
+    <div class="pf">熊誠毅 ｜ 誠毅傳承　·　誠於心・毅於行・傳於世・承於志　·　列印日期 ${today().toISOString().slice(0,10)}</div>`;
+  setTimeout(()=>window.print(),100);
+}
+
+/* ---------- 首次引導：常用項目 ---------- */
+let welSel=TEMPLATES.map(()=>true);
+function welStyle(){
+  return TEMPLATES.map((t,i)=>{
+    const on=welSel[i];
+    return `<div onclick="welToggle(${i})" style="display:flex;align-items:center;gap:11px;padding:11px 13px;margin-bottom:7px;border-radius:11px;cursor:pointer;border:1.5px solid ${on?'var(--gold)':'var(--gray)'};background:${on?'#FBF6E8':'#fff'}">
+      <div style="width:22px;height:22px;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;background:${on?'var(--gold)':'var(--gray)'}">${on?'✓':''}</div>
+      <span style="font-size:19px">${CATS[t.cat].e}</span>
+      <div style="flex:1;min-width:0"><div style="font-size:14px;font-weight:700;color:var(--navy)">${t.name}</div>
+      <div style="font-size:11px;color:#aaa">${CYCLE[t.cycle]}${t.amt?'　·　約 NT$ '+fmt(t.amt):''}</div></div>
+    </div>`;
+  }).join('');
+}
+function renderWel(){document.getElementById('welList').innerHTML=welStyle()}
+function welToggle(i){welSel[i]=!welSel[i];renderWel()}
+function welAll(v){welSel=welSel.map(()=>v);renderWel()}
+function welAdd(){
+  TEMPLATES.forEach((t,i)=>{
+    if(!welSel[i])return;
+    const it={id:uid(),cat:t.cat,name:t.name,amt:t.amt,date:isoFromToday(t.off),cycle:t.cycle,paid:false};
+    if(t.cat==='insurance'){it.company=t.company||'';it.policyno=t.policyno||'';it.holder=t.holder||'';it.insured=t.insured||'';}
+    data.push(it);
+  });
+  save();finishWelcome();
+}
+function welSkip(){finishWelcome()}
+function finishWelcome(){
+  localStorage.setItem('cy_pt_onboarded','1');
+  document.getElementById('welmask').classList.remove('on');
+  render();
+  // 首次完成後，提示加到主畫面
+  if(!localStorage.getItem('cy_pt_install_shown')){
+    localStorage.setItem('cy_pt_install_shown','1');
+    setTimeout(showInstall,600);
+  }
+}
+function acceptPrivacy(){
+  localStorage.setItem('cy_pt_privacy','1');
+  document.getElementById('privacymask').classList.remove('on');
+  // 接著顯示常用項目選擇
+  renderWel();
+  document.getElementById('welmask').classList.add('on');
+}
+function maybeWelcome(){
+  if(localStorage.getItem('cy_pt_onboarded')||data.length>0)return false;
+  if(!localStorage.getItem('cy_pt_privacy')){
+    document.getElementById('privacymask').classList.add('on');
+  }else{
+    renderWel();
+    document.getElementById('welmask').classList.add('on');
+  }
+  return true;
+}
+
+applyBig();
+render();
+maybeWelcome();
+fireNotifications();
+</script>
+</body>
+</html>
